@@ -72,11 +72,22 @@ AWS_week_2/
 ├── requirements.txt            # Python dependencies
 ├── requirment.txt              # Dependency alias
 ├── README.md                   # Project documentation and query demonstrations
-├── semantic_search.py          # Modular, reusable Python functions and CLI entry point
-├── mini_semantic_search.ipynb  # Interactive Jupyter / Colab notebook
-└── data/
-    ├── faqs.csv                # Curated AWS & AI/ML FAQ dataset in CSV format
-    └── faqs.json               # FAQ dataset in JSON format
+├── main.py                     # Application CLI pipeline entry point
+├── semantic_search.py          # Standalone semantic search script
+│
+├── data/
+│   ├── faqs.csv                # Curated AWS & AI/ML FAQ dataset in CSV format
+│   └── faqs.json               # FAQ dataset in JSON format
+│
+├── notebooks/
+│   └── mini_semantic_search.ipynb # Interactive Jupyter / Colab research notebook
+│
+└── src/                        # Modular Python Package
+    ├── __init__.py             # Package exports
+    ├── data_loader.py          # FAQ ingestion & schema validation
+    ├── preprocessor.py         # Text normalization & sliding window chunker
+    ├── vector_store.py         # ChromaDB initialization & indexing
+    └── search_engine.py        # Semantic query execution & result ranking
 ```
 
 ---
@@ -127,16 +138,17 @@ All core operations in [`semantic_search.py`](semantic_search.py) are written as
 
 ## 🚀 Running the Project
 
-### Option A: Run the Python CLI Script
-Execute the full pipeline from the terminal:
+### Option A: Run the Modular Pipeline via CLI
+Execute the full end-to-end pipeline using the `src` package:
 ```bash
-python semantic_search.py
+python main.py
 ```
+*(Or run the self-contained script: `python semantic_search.py`)*
 
 ### Option B: Run the Jupyter Notebook
-Launch the interactive notebook:
+Launch the interactive notebook from the `notebooks/` folder:
 ```bash
-jupyter notebook mini_semantic_search.ipynb
+jupyter notebook notebooks/mini_semantic_search.ipynb
 ```
 
 ---
