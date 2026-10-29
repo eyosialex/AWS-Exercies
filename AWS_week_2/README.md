@@ -19,9 +19,10 @@ This project demonstrates the complete end-to-end vector search lifecycle:
 ## 📋 Deliverables Checklist
 
 - [x] **FAQ Dataset**: Curated CSV (`data/faqs.csv`) and JSON (`data/faqs.json`) covering AWS Cloud & AI/ML topics.
-- [x] **Modular Python Functions**: [`semantic_search.py`](semantic_search.py) with dedicated data loading, cleaning, chunking, indexing, and querying functions.
-- [x] **Interactive Notebook**: [`mini_semantic_search.ipynb`](mini_semantic_search.ipynb) ready for Jupyter and Google Colab.
-- [x] **Dependencies Specification**: [`requirements.txt`](requirements.txt) (and [`requirment.txt`](requirment.txt)).
+- [x] **Modular Python Architecture**: Clean [`src/`](src/) package with decoupled data loading, preprocessing, vector storage, and search retrieval.
+- [x] **Interactive Notebook**: [`notebooks/semantic_search.ipynb`](notebooks/semantic_search.ipynb) reusing functions directly from `src/`.
+- [x] **Primary Pipeline Entrypoint**: [`main.py`](main.py) executing the end-to-end semantic workflow.
+- [x] **Dependencies Specification**: [`requirements.txt`](requirements.txt).
 - [x] **Clear README with Example Queries**: Complete documentation including architecture, setup instructions, and sample query outputs.
 - [x] **Commit History**: Structured Git commits showing step-by-step progress.
 
@@ -68,26 +69,24 @@ This project demonstrates the complete end-to-end vector search lifecycle:
 
 ```text
 AWS_week_2/
-├── .gitignore                  # Git ignore rules for venv, cache, and vector store
-├── requirements.txt            # Python dependencies
-├── requirment.txt              # Dependency alias
-├── README.md                   # Project documentation and query demonstrations
-├── main.py                     # Application CLI pipeline entry point
-├── semantic_search.py          # Standalone semantic search script
+├── .gitignore                     # Git ignore rules for venv, cache, and vector store
+├── requirements.txt               # Python dependencies
+├── README.md                      # Project documentation and query demonstrations
+├── main.py                        # Application CLI pipeline entry point
 │
 ├── data/
-│   ├── faqs.csv                # Curated AWS & AI/ML FAQ dataset in CSV format
-│   └── faqs.json               # FAQ dataset in JSON format
+│   ├── faqs.csv                   # Curated AWS & AI/ML FAQ dataset in CSV format
+│   └── faqs.json                  # FAQ dataset in JSON format
 │
 ├── notebooks/
-│   └── mini_semantic_search.ipynb # Interactive Jupyter / Colab research notebook
+│   └── semantic_search.ipynb      # Interactive Jupyter / Colab notebook reusing src/ functions
 │
-└── src/                        # Modular Python Package
-    ├── __init__.py             # Package exports
-    ├── data_loader.py          # FAQ ingestion & schema validation
-    ├── preprocessor.py         # Text normalization & sliding window chunker
-    ├── vector_store.py         # ChromaDB initialization & indexing
-    └── search_engine.py        # Semantic query execution & result ranking
+└── src/                           # Modular Python Package (Single Source of Truth)
+    ├── __init__.py                # Package exports
+    ├── data_loader.py             # FAQ ingestion & schema validation
+    ├── preprocessor.py            # Text normalization & sliding window chunker
+    ├── vector_store.py            # ChromaDB initialization & indexing
+    └── search_engine.py           # Semantic query execution & result ranking
 ```
 
 ---
@@ -118,21 +117,21 @@ pip install -r requirements.txt
 
 ---
 
-## 🧩 Modular Functions Breakdown
+## 🧩 Modular Functions Breakdown (`src/`)
 
-All core operations in [`semantic_search.py`](semantic_search.py) are written as modular, self-contained functions:
+All core operations are implemented in [`src/`](src/) and reused across [`main.py`](main.py) and [`notebooks/semantic_search.ipynb`](notebooks/semantic_search.ipynb):
 
-| Function | Description |
-| :--- | :--- |
-| `load_faqs(filepath)` | Reads `.csv` or `.json` file using Pandas, validates schema, and ensures required columns (`id`, `question`, `answer`, `category`). |
-| `clean_text(text)` | Normalizes whitespace, strips control characters, and handles empty or non-string inputs. |
-| `chunk_text(text, chunk_size, chunk_overlap)` | Splits long text into overlapping chunks using a sliding window algorithm to preserve cross-boundary context. |
-| `prepare_faq_documents(df, chunk_size, chunk_overlap)` | Prepares full text snippets, assigns unique document IDs (`faq_1_chunk_0`), and attaches metadata. |
-| `get_embedding_function(model_name)` | Loads a `sentence-transformers` embedding function (`all-MiniLM-L6-v2`) or Chroma's default embedding function. |
-| `initialize_chroma_collection(...)` | Sets up persistent or memory-backed ChromaDB collection configured for cosine distance. |
-| `index_faqs_to_chroma(collection, docs, metas, ids)` | Batches and upserts documents and vector embeddings into the ChromaDB collection. |
-| `query_faqs(collection, query_text, top_k=3)` | Queries ChromaDB using natural language, calculates similarity scores (`1.0 - distance`), and formats the top 3 matches. |
-| `print_search_results(query_text, results)` | Formats and outputs the query results with ranking, category, similarity score, and text excerpt. |
+| Module | Function | Description |
+| :--- | :--- | :--- |
+| `src.data_loader` | `load_faqs(filepath)` | Reads `.csv` or `.json` file using Pandas, validates schema, and ensures required columns (`id`, `question`, `answer`, `category`). |
+| `src.preprocessor` | `clean_text(text)` | Normalizes whitespace, strips control characters, and handles non-string inputs. |
+| `src.preprocessor` | `chunk_text(text, chunk_size, chunk_overlap)` | Splits long text into overlapping chunks using a sliding window algorithm to preserve cross-boundary context. |
+| `src.preprocessor` | `prepare_faq_documents(df, chunk_size, chunk_overlap)` | Prepares full text snippets, assigns unique document IDs (`faq_1_chunk_0`), and attaches metadata. |
+| `src.vector_store` | `initialize_chroma_collection(...)` | Sets up persistent or memory-backed ChromaDB collection configured for cosine distance (with automatic fallback). |
+| `src.vector_store` | `index_faqs_to_chroma(collection, docs, metas, ids)` | Batches and upserts documents and vector embeddings into the ChromaDB collection. |
+| `src.search_engine` | `query_faqs(collection, query_text, top_k=3)` | Queries vector store using natural language, calculates similarity scores (`1.0 - distance`), and formats top 3 matches. |
+| `src.search_engine` | `print_search_results(query_text, results)` | Formats and outputs query results with ranking, category, similarity score, and text excerpt. |
+| `src.search_engine` | `search_and_display(collection, query_text, top_k=3)` | Convenience wrapper to query and immediately render formatted results. |
 
 ---
 
@@ -143,12 +142,11 @@ Execute the full end-to-end pipeline using the `src` package:
 ```bash
 python main.py
 ```
-*(Or run the self-contained script: `python semantic_search.py`)*
 
 ### Option B: Run the Jupyter Notebook
-Launch the interactive notebook from the `notebooks/` folder:
+Launch the interactive notebook that reuses the `src/` modules:
 ```bash
-jupyter notebook notebooks/mini_semantic_search.ipynb
+jupyter notebook notebooks/semantic_search.ipynb
 ```
 
 ---
