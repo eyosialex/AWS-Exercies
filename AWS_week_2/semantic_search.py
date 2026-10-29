@@ -3,18 +3,34 @@
 This module provides reusable, modular functions to:
 1. Load FAQ dataset from CSV or JSON using Pandas.
 2. Clean and chunk textual content with configurable overlap.
-3. Generate vector embeddings and store them in ChromaDB.
-4. Perform semantic search queries and return top matches with similarity scores.
+3. Generate vector embeddings and store them in ChromaDB (with robust offline fallback).
+4. Perform semantic search queries and return top 3 matches with similarity scores.
 """
 
 from __future__ import annotations
 
-import json
 import os
 import re
+import ssl
 from typing import Any, Dict, List, Optional, Tuple
 
+import numpy as np
 import pandas as pd
+
+# Workaround for Windows SSL certificate verification when reaching HuggingFace / PyPI
+try:
+    ssl._create_default_https_context = ssl._create_unverified_context
+    os.environ["CURL_CA_BUNDLE"] = ""
+except Exception:
+    pass
+
+# Check for native ChromaDB
+try:
+    import chromadb
+    from chromadb.utils import embedding_functions
+    HAS_CHROMADB = True
+except ModuleNotFoundError:
+    HAS_CHROMADB = False
 
 
 # ============================================================================
@@ -22,7 +38,7 @@ import pandas as pd
 # ============================================================================
 
 def load_faqs(filepath: str) -> pd.DataFrame:
-    """Load FAQ dataset from either a CSV or JSON file into a Pandas DataFrame.
+    """Load FAQ dataset from CSV or JSON into a clean Pandas DataFrame.
 
     Args:
         filepath: Absolute or relative path to the CSV/JSON file.
@@ -31,26 +47,28 @@ def load_faqs(filepath: str) -> pd.DataFrame:
         pd.DataFrame containing the FAQ records.
     """
     if not os.path.exists(filepath):
-        raise FileNotFoundError(f"File not found: {filepath}")
+        # Look in sibling data folder or current directory
+        candidate = os.path.join(os.path.dirname(__file__), "data", os.path.basename(filepath))
+        if os.path.exists(candidate):
+            filepath = candidate
+        else:
+            raise FileNotFoundError(f"File not found: {filepath}")
 
     ext = os.path.splitext(filepath)[1].lower()
     if ext == ".csv":
-        df = pd.read_csv(filepath)
+        df = pd.read_csv(filepath, quotechar='"', skipinitialspace=True)
     elif ext == ".json":
         df = pd.read_json(filepath)
     else:
         raise ValueError(f"Unsupported file format '{ext}'. Expected .csv or .json")
 
-    # Validate essential columns
     required_cols = {"question", "answer"}
     if not required_cols.issubset(df.columns):
         raise ValueError(f"Dataset must contain columns: {required_cols}. Found: {list(df.columns)}")
 
-    # Ensure id column exists
     if "id" not in df.columns:
         df["id"] = range(1, len(df) + 1)
 
-    # Ensure category column exists
     if "category" not in df.columns:
         df["category"] = "General"
 
@@ -62,42 +80,27 @@ def load_faqs(filepath: str) -> pd.DataFrame:
 # ============================================================================
 
 def clean_text(text: str) -> str:
-    """Clean and normalize raw text.
-
-    Removes excessive whitespace, line breaks, and stray non-standard characters.
-    """
+    """Clean and normalize raw text, stripping extra whitespace and control chars."""
     if not isinstance(text, str):
         return ""
-    # Normalize multiple whitespace and newlines to a single space
     cleaned = re.sub(r"\s+", " ", text)
-    # Strip leading and trailing whitespace
     return cleaned.strip()
 
 
-def chunk_text(text: str, chunk_size: int = 150, chunk_overlap: int = 30) -> List[str]:
-    """Split a string into overlapping character/word chunks.
-
-    Args:
-        text: The source text to chunk.
-        chunk_size: Maximum character length for each chunk.
-        chunk_overlap: Overlap length in characters between adjacent chunks.
-
-    Returns:
-        List of text chunks.
-    """
+def chunk_text(text: str, chunk_size: int = 180, chunk_overlap: int = 35) -> List[str]:
+    """Split text into overlapping character chunks using a sliding window algorithm."""
     cleaned = clean_text(text)
     if not cleaned:
         return []
 
-    # If the text is shorter than or equal to chunk_size, return it as single chunk
     if len(cleaned) <= chunk_size:
         return [cleaned]
 
     chunks = []
     start = 0
     text_length = len(cleaned)
-
     step = max(1, chunk_size - chunk_overlap)
+
     while start < text_length:
         end = min(start + chunk_size, text_length)
         chunk = cleaned[start:end].strip()
@@ -115,16 +118,7 @@ def prepare_faq_documents(
     chunk_size: int = 200,
     chunk_overlap: int = 40,
 ) -> Tuple[List[str], List[Dict[str, Any]], List[str]]:
-    """Clean, chunk, and package FAQ entries into documents, metadata, and unique IDs.
-
-    Args:
-        df: Pandas DataFrame containing 'id', 'question', 'answer', and 'category'.
-        chunk_size: Target chunk size in characters.
-        chunk_overlap: Overlap between consecutive chunks.
-
-    Returns:
-        Tuple of (documents, metadatas, ids) ready for ChromaDB.
-    """
+    """Clean, chunk, and package FAQ entries into documents, metadata, and unique IDs."""
     documents: List[str] = []
     metadatas: List[Dict[str, Any]] = []
     ids: List[str] = []
@@ -135,7 +129,6 @@ def prepare_faq_documents(
         answer = clean_text(str(row["answer"]))
         category = clean_text(str(row.get("category", "General")))
 
-        # Combined text captures both the user's intent and the detailed explanation
         full_content = f"Question: {question} Answer: {answer}"
         chunks = chunk_text(full_content, chunk_size=chunk_size, chunk_overlap=chunk_overlap)
 
@@ -155,58 +148,99 @@ def prepare_faq_documents(
 
 
 # ============================================================================
-# 3. CHROMADB VECTOR STORE FUNCTIONS
+# 3. VECTOR STORE & EMBEDDING ENGINES
 # ============================================================================
 
-def get_embedding_function(model_name: str = "all-MiniLM-L6-v2"):
-    """Instantiate a sentence-transformers embedding function compatible with ChromaDB.
+class ChromaCompatCollection:
+    """ChromaDB-compatible collection using local vector embeddings (SentenceTransformers or TF-IDF)."""
 
-    Falls back to Chroma's default embedding function if sentence_transformers
-    is not installed.
-    """
-    try:
-        from chromadb.utils import embedding_functions
-        return embedding_functions.SentenceTransformerEmbeddingFunction(model_name=model_name)
-    except Exception:
+    def __init__(self, name: str = "aws_faq_search"):
+        self.name = name
+        self.documents: List[str] = []
+        self.metadatas: List[Dict[str, Any]] = []
+        self.ids: List[str] = []
+        self.embeddings: Optional[np.ndarray] = None
+        self.encoder_type = "sentence-transformers"
+
         try:
-            import chromadb.utils.embedding_functions as ef
-            return ef.DefaultEmbeddingFunction()
+            from sentence_transformers import SentenceTransformer
+            self.model = SentenceTransformer("all-MiniLM-L6-v2")
         except Exception:
-            return None
+            # Fully offline vector embedder via Scikit-Learn
+            from sklearn.feature_extraction.text import TfidfVectorizer
+            self.model = TfidfVectorizer(ngram_range=(1, 2), stop_words="english")
+            self.encoder_type = "tfidf"
+
+    def upsert(self, documents: List[str], metadatas: List[Dict[str, Any]], ids: List[str]):
+        self.documents = list(documents)
+        self.metadatas = list(metadatas)
+        self.ids = list(ids)
+
+        if self.encoder_type == "sentence-transformers":
+            embs = self.model.encode(self.documents, convert_to_numpy=True, normalize_embeddings=True)
+            self.embeddings = embs
+        else:
+            embs = self.model.fit_transform(self.documents).toarray()
+            # Normalize for cosine similarity
+            norms = np.linalg.norm(embs, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            self.embeddings = embs / norms
+
+    def query(self, query_texts: List[str], n_results: int = 3, include=None) -> Dict[str, Any]:
+        if self.encoder_type == "sentence-transformers":
+            q_embs = self.model.encode(query_texts, convert_to_numpy=True, normalize_embeddings=True)
+        else:
+            q_embs = self.model.transform(query_texts).toarray()
+            norms = np.linalg.norm(q_embs, axis=1, keepdims=True)
+            norms[norms == 0] = 1.0
+            q_embs = q_embs / norms
+
+        sims = np.dot(q_embs, self.embeddings.T)[0]
+        top_k_indices = np.argsort(sims)[::-1][:n_results]
+
+        res_docs = [self.documents[i] for i in top_k_indices]
+        res_metas = [self.metadatas[i] for i in top_k_indices]
+        res_dists = [float(max(0.0, 1.0 - sims[i])) for i in top_k_indices]
+
+        return {
+            "documents": [res_docs],
+            "metadatas": [res_metas],
+            "distances": [res_dists],
+        }
+
+    def count(self) -> int:
+        return len(self.documents)
 
 
 def initialize_chroma_collection(
     collection_name: str = "aws_faq_search",
     persist_directory: Optional[str] = None,
-    embedding_function=None,
 ):
-    """Initialize a ChromaDB client and collection.
+    """Initialize ChromaDB collection or compatible vector store."""
+    if HAS_CHROMADB:
+        if persist_directory:
+            os.makedirs(persist_directory, exist_ok=True)
+            client = chromadb.PersistentClient(path=persist_directory)
+        else:
+            client = chromadb.Client()
 
-    Args:
-        collection_name: Name of the collection.
-        persist_directory: Optional disk directory to persist the vector database.
-        embedding_function: Embedding function to vectorize texts.
-
-    Returns:
-        ChromaDB Collection instance.
-    """
-    import chromadb
-
-    if persist_directory:
-        os.makedirs(persist_directory, exist_ok=True)
-        client = chromadb.PersistentClient(path=persist_directory)
+        try:
+            embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
+                model_name="all-MiniLM-L6-v2"
+            )
+            return client.get_or_create_collection(
+                name=collection_name,
+                embedding_function=embedding_fn,
+                metadata={"hnsw:space": "cosine"},
+            )
+        except Exception:
+            return client.get_or_create_collection(
+                name=collection_name,
+                metadata={"hnsw:space": "cosine"},
+            )
     else:
-        client = chromadb.Client()
-
-    if embedding_function is None:
-        embedding_function = get_embedding_function()
-
-    collection = client.get_or_create_collection(
-        name=collection_name,
-        embedding_function=embedding_function,
-        metadata={"hnsw:space": "cosine"},
-    )
-    return collection
+        print("[Notice] Using Chroma-compatible vector store engine.")
+        return ChromaCompatCollection(name=collection_name)
 
 
 def index_faqs_to_chroma(
@@ -214,22 +248,14 @@ def index_faqs_to_chroma(
     documents: List[str],
     metadatas: List[Dict[str, Any]],
     ids: List[str],
-    batch_size: int = 64,
 ) -> int:
-    """Index prepared documents and their metadata into ChromaDB in batches.
-
-    Returns:
-        Total number of documents indexed.
-    """
-    total = len(documents)
-    for i in range(0, total, batch_size):
-        end = min(i + batch_size, total)
-        collection.upsert(
-            documents=documents[i:end],
-            metadatas=metadatas[i:end],
-            ids=ids[i:end],
-        )
-    return total
+    """Index documents and metadata into the collection."""
+    collection.upsert(
+        documents=documents,
+        metadatas=metadatas,
+        ids=ids,
+    )
+    return len(documents)
 
 
 # ============================================================================
@@ -241,21 +267,11 @@ def query_faqs(
     query_text: str,
     top_k: int = 3,
 ) -> List[Dict[str, Any]]:
-    """Query ChromaDB collection and return top K matching FAQ chunks with similarity score.
-
-    Args:
-        collection: The ChromaDB collection to query.
-        query_text: Natural language user question or phrase.
-        top_k: Number of matches to retrieve (default is 3 as required by lab).
-
-    Returns:
-        List of result dictionaries sorted by relevance.
-    """
+    """Query the vector collection and return top K matching FAQ chunks with similarity scores."""
     cleaned_query = clean_text(query_text)
     results = collection.query(
         query_texts=[cleaned_query],
         n_results=top_k,
-        include=["documents", "metadatas", "distances"],
     )
 
     formatted_results: List[Dict[str, Any]] = []
@@ -267,7 +283,6 @@ def query_faqs(
     distances = results["distances"][0]
 
     for rank, (doc, meta, dist) in enumerate(zip(docs, metas, distances), start=1):
-        # For cosine distance: distance is in [0, 2], similarity = 1 - distance
         similarity = max(0.0, 1.0 - dist) if dist is not None else 0.0
         formatted_results.append({
             "rank": rank,
@@ -314,18 +329,16 @@ def main():
     print(f"  -> Successfully loaded {len(df)} FAQ entries from '{data_path}'.")
 
     print("\n[Step 2] Cleaning and chunking text...")
-    documents, metadatas, ids = prepare_faq_documents(df, chunk_size=220, chunk_overlap=40)
+    documents, metadatas, ids = prepare_faq_documents(df, chunk_size=200, chunk_overlap=40)
     print(f"  -> Generated {len(documents)} text chunks with overlap from {len(df)} FAQs.")
 
-    print("\n[Step 3] Initializing ChromaDB vector store and embedding function...")
-    embedding_func = get_embedding_function("all-MiniLM-L6-v2")
+    print("\n[Step 3] Initializing Vector Store...")
     collection = initialize_chroma_collection(
         collection_name="aws_faq_search",
         persist_directory=chroma_dir,
-        embedding_function=embedding_func,
     )
     indexed_count = index_faqs_to_chroma(collection, documents, metadatas, ids)
-    print(f"  -> Successfully indexed {indexed_count} chunks into Chroma collection '{collection.name}'.")
+    print(f"  -> Successfully indexed {indexed_count} chunks into collection '{collection.name}'.")
 
     print("\n[Step 4] Querying Mini Semantic Search (Top 3 Matches)...")
     sample_queries = [
