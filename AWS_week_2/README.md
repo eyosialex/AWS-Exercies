@@ -1,5 +1,6 @@
 # 🔍 Mini Semantic Search Engine — AWS Week 2
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eyosialex/AWS-Exercies/blob/main/AWS_week_2/notebooks/semantic_search.ipynb)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
 [![ChromaDB](https://img.shields.io/badge/ChromaDB-AI--Native%20Vector%20Store-red.svg)](https://www.trychroma.com/)
 [![Pandas](https://img.shields.io/badge/Pandas-Data%20Processing-150458.svg)](https://pandas.pydata.org/)
@@ -95,8 +96,8 @@ AWS_week_2/
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/your-username/aws-project.git
-cd "aws project/AWS_week_2"
+git clone https://github.com/eyosialex/AWS-Exercies.git
+cd AWS-Exercies/AWS_week_2
 ```
 
 ### 2. Create and activate a Virtual Environment
@@ -142,6 +143,11 @@ Execute the full end-to-end pipeline using the `src` package:
 ```bash
 python main.py
 ```
+
+### Option C: Run Directly in Google Colab (1-Click Run)
+Open and run the notebook instantly in Google Colab without any local environment setup:
+
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eyosialex/AWS-Exercies/blob/main/AWS_week_2/notebooks/semantic_search.ipynb)
 
 ### Option B: Run the Jupyter Notebook
 Launch the interactive notebook that reuses the `src/` modules:
