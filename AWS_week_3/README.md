@@ -1,275 +1,280 @@
-# AWS ML Tasks: Hands-on Machine Learning & Semantic Search Pipelines
+# 🛡️ From Machine Learning to Modern AI: A Spam Email Detector — AWS AI/ML Week 3
 
-[![Open Week 1 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EyobTesfaye8/AWS_tasks/blob/main/week-01/AWS_First_week_task.ipynb)
-[![Open Week 2 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EyobTesfaye8/AWS_tasks/blob/main/week-02/AWS_ML_Semantic_Search.ipynb)
-[![Open Week 3 in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EyobTesfaye8/AWS_tasks/blob/main/week-03/spam_filter.ipynb)
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eyosialex/AWS-Exercies/blob/main/AWS_week_3/spam_filter.ipynb)
 ![Python Version](https://img.shields.io/badge/python-3.10%2B-blue.svg)
-![Vector DB](https://img.shields.io/badge/VectorDB-ChromaDB-green.svg)
-![License](https://img.shields.io/badge/license-MIT-purple.svg)
+![Scikit-Learn](https://img.shields.io/badge/scikit--learn-MultinomialNB-orange.svg)
+![Deep Learning](https://img.shields.io/badge/PyTorch-Deep%20Learning-red.svg)
+![Transformers](https://img.shields.io/badge/Transformers-BERT%20Tokenizer-yellow.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-This repository contains hands-on data engineering, exploratory data analysis, dense vector embeddings, and semantic retrieval pipelines developed for the **AWS Machine Learning (AASTU Cohort)** program.
+> **Course**: AWS AI/ML (AASTU Cohort) — Week 3 Deliverable  
+> **Repository**: [https://github.com/eyosialex/AWS-Exercies](https://github.com/eyosialex/AWS-Exercies)  
+> **Dataset**: [UCI SMS Spam Collection Dataset](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) *(Not uploaded to git per Slide 20 guidelines; downloaded automatically on demand)*
 
 ---
 
-## 📁 Repository Structure
+## 📌 Executive Summary
 
-The project is structured into modular, weekly directories following course standards:
+This repository presents an end-to-end evolutionary journey from **Classical Machine Learning** to **Deep Learning** and **Modern Generative AI (LLMs)**, demonstrated step by step using a single running problem: **building, evaluating, and breaking a spam email detector**.
 
-```text
-AWS_ML/
-├── .gitignore                                      # Excludes virtual environments, pycache, checkpoints
-├── requirements.txt                                # Consolidated dependencies (numpy, pandas, chromadb, etc.)
-├── README.md                                       # Comprehensive documentation & setup instructions
-├── week-01/                                        # Week 01 Deliverables: Market Data Analysis Pipeline
-│   ├── AWS_First_week_task.ipynb                   # Executed Jupyter Notebook with outputs & plots
-│   ├── main.py                                     # Python script with named cleaning & NumPy functions
-│   ├── marketing.csv                               # Raw agricultural market arrivals dataset
-│   └── price_trends.png                            # Generated time-series visualization
-├── week-02/                                        # Week 02 Deliverables: APIs, Embeddings & Semantic Search
-│   ├── AWS_ML_Semantic_Search.ipynb                # Custom end-to-end semantic search notebook
-│   ├── AASTU_Week2_Data_APIs_Embeddings_Practical.ipynb # Cohort starter reference notebook
-│   ├── main.py                                     # Standalone semantic search & vector DB pipeline script
-│   └── data/
-│       ├── raw_messy_faqs.csv                      # Raw dataset with intentional defects (nulls/duplicates)
-│       ├── faqs.csv                                # Curated 20+ AWS & ML domain FAQs
-│       └── faqs.json                               # Structured JSON representation of FAQ database
-└── week-03/                                        # Week 03 Deliverables: Breaking the Spam Filter
-    ├── spam_filter.ipynb                           # Executed Jupyter Notebook with outputs & failure analysis
-    ├── main.py                                     # Standalone pipeline script with baseline model & tests
-    └── data/
-        └── sms.tsv                                 # Raw SMS Spam Collection dataset
+```
+    ERA 1: CLASSICAL ML               ERA 2: DEEP LEARNING              ERA 3: MODERN AI / LLMs
+  ┌───────────────────────┐         ┌───────────────────────┐         ┌───────────────────────┐
+  │   Hand-Crafted /      │         │ Hierarchical Feature  │         │ Pre-trained Universal │
+  │   TF-IDF Word Counts  │         │ Learning (MLP Neural) │         │ Transformer (Attention)│
+  └───────────┬───────────┘         └───────────┬───────────┘         └───────────┬───────────┘
+              ▼                                 ▼                                 ▼
+  ┌───────────────────────┐         ┌───────────────────────┐         ┌───────────────────────┐
+  │  MultinomialNB (10L)  │         │ Dense(64) -> Dense(32)│         │ Subword Tokenization, │
+  │  Fast, Linear Scan    │         │ -> Dense(1) [Sigmoid] │         │ Prompting, Fine-tune  │
+  └───────────┬───────────┘         └───────────┬───────────┘         └───────────┬───────────┘
+              ▼                                 ▼                                 ▼
+  ┌───────────────────────┐         ┌───────────────────────┐         ┌───────────────────────┐
+  │ ❌ Broken by Leetspeak│         │ ⚠️ Needs High Data,   │         │ ✅ Context-Aware,     │
+  │    & Negation Invert  │         │    Misses Global Text │         │    Understands Syntax │
+  └───────────────────────┘         └───────────────────────┘         └───────────────────────┘
 ```
 
 ---
 
-## 🚀 Environment Setup & Getting Started
+## 📁 Repository Deliverables (Slide 20 Compliance)
 
-Follow the steps below to configure an isolated Python virtual environment and install the required dependencies.
+Per the **Week 3 Deliverable Specification (Slide 20)**, the submission includes:
+
+| Deliverable File | Description | Status |
+| :--- | :--- | :---: |
+| [`spam_filter.ipynb`](spam_filter.ipynb) | Complete Jupyter Notebook with precomputed outputs, visualizations, and failure analysis | ✅ Verified |
+| [`main.py`](main.py) | Standalone executable Python pipeline script reproducing all 3 eras and test suite | ✅ Verified |
+| [`README.md`](README.md) | Comprehensive write-up, technical failure mode analysis, and exact results table | ✅ Verified |
+| [`requirements.txt`](requirements.txt) | Minimal, pinned reproducible dependencies | ✅ Verified |
+| [`.gitignore`](.gitignore) | Strict exclusion of raw datasets (`*.tsv`, `*.csv`), virtual environments, and cache | ✅ Verified |
+
+> [!IMPORTANT]
+> **Dataset Policy (Slide 20)**: Slide 20 explicitly instructs: *"a link to the dataset (do not upload it)"*.  
+> In compliance with this rule, [`data/sms.tsv`](https://archive.ics.uci.edu/dataset/228/sms+spam+collection) is strictly excluded via [`.gitignore`](.gitignore). When executing [`main.py`](main.py) or [`spam_filter.ipynb`](spam_filter.ipynb), the script automatically verifies local cache and downloads the canonical dataset directly from the public GitHub mirror if missing.
+
+---
+
+## 🔬 The Full Journey: One Problem, Three Eras (Slide 18)
+
+| Dimension | Era 1: Classical Machine Learning | Era 2: Deep Learning | Era 3: Modern Large Language Models |
+| :--- | :--- | :--- | :--- |
+| **Primary Architecture** | TF-IDF + Multinomial Naive Bayes | Multi-Layer Perceptron (Dense ReLU + Sigmoid) | Transformer (Self-Attention, AutoTokenizer) |
+| **Feature Extraction** | Manually designed n-gram frequency counts | Learned hierarchically through hidden layers | Universal subword tokens & contextual embeddings |
+| **Training Data Needed** | Hundreds to thousands of labeled samples | Many thousands to millions of samples | Zero to few examples (prompted) or fine-tuned |
+| **Training / Inference Speed**| Microseconds; near-zero CPU footprint | Milliseconds; moderate GPU/CPU compute | Seconds; heavy GPU compute or API latency |
+| **Vulnerability to Typos** | Highly vulnerable (`fr33` $\to$ Out-of-Vocabulary) | Moderately vulnerable without character embeddings | Immune (BPE/WordPiece breaks into `['fr', '##33']`) |
+| **Handling of Negation** | Fails completely (bag-of-words ignores word order) | Partial (limited local context in n-gram MLPs) | Flawless (bidirectional attention binds "not" to "free") |
+| **Best Used For** | High-volume, low-latency, resource-constrained filters | Medium-scale tasks with complex non-linear patterns | Nuanced, language-rich, conversational reasoning |
+
+---
+
+## 🧠 Slide-by-Slide Technical Breakdown
+
+### 1. What is Machine Learning? (Slide 2)
+- **Traditional Programming**: Rules are explicitly hard-coded:
+  ```python
+  if "free money" in email:
+      return "spam"
+  ```
+  *Flaw*: Breaks instantly the moment spammers vary their phrasing or substitute letters (`"fr33 m0ney"`).
+- **Machine Learning**: Instead of hand-crafting rules, we provide examples of spam and legitimate email (ham). The computer uncovers statistical patterns on its own.
+
+### 2. The Spam Detector Pipeline (Slide 3)
+The end-to-end machine learning lifecycle:
+$$\text{Collect Emails} \longrightarrow \text{Pick Features} \longrightarrow \text{Label} \longrightarrow \text{Split Data} \longrightarrow \text{Train} \longrightarrow \text{Measure} \longrightarrow \text{Improve}$$
+
+### 3. Features, Labels & TF-IDF (Slide 4)
+- **Features**: The numerical signals seen by the model (e.g. word frequency, link count, capitalization).
+- **Label**: The target ground truth to predict (`spam` or `ham`).
+- **TF-IDF (Term Frequency-Inverse Document Frequency)**: Scores word importance by balancing frequency within an email against ubiquity across all emails:
+  $$\text{TF-IDF}(t, d, D) = \text{TF}(t, d) \times \log \left( \frac{1 + |D|}{1 + |\{d \in D : t \in d\}|} \right) + 1$$
+
+### 4. Train / Validation / Test 3-Way Split (Slide 5)
+Never test on data the model has seen:
+- **Train (70%)**: Practice questions from which model parameters are learned.
+- **Validation (15%)**: Mock exam used to tune hyperparameters and check for overfitting.
+- **Test (15%)**: Real final exam, touched only once after model selection.
+
+### 5. Classical ML Baseline (Slide 6)
+The exact 10-line baseline implemented in scikit-learn:
+```python
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(emails, labels, test_size=0.2, random_state=42)
+vec = TfidfVectorizer()                        # text -> numbers (features)
+model = MultinomialNB()                        # a simple, fast classifier
+model.fit(vec.fit_transform(X_train), y_train) # learn
+```
+
+### 6. Measuring Performance & The Cost of False Positives (Slide 7)
+Accuracy alone can fool you on imbalanced datasets (e.g., in a 90% ham corpus, a dummy model predicting 100% ham scores 90% accuracy while catching zero spam).
+- **Precision**: $\frac{\text{True Positives}}{\text{True Positives} + \text{False Positives}}$ (Of emails flagged spam, how many really were?)
+- **Recall**: $\frac{\text{True Positives}}{\text{True Positives} + \text{False Negatives}}$ (Of all real spam, how many did we catch?)
+- **The Critical Trade-Off**: A **False Positive** means an important legitimate email (job offer, invoice, family emergency) is lost in the spam folder. In spam detection, **False Positives hurt most, so precision is paramount**.
+
+### 7. Overfitting vs. Underfitting Diagnosis (Slides 9 & 10)
+Comparing training score against testing score diagnoses generalization health:
+- $\text{Train Acc} \approx 99\% \land \text{Test Acc} \approx 80\% \implies$ **Overfitting** (model memorized training mail).
+- $\text{Train Acc} \approx 70\% \land \text{Test Acc} \approx 70\% \implies$ **Underfitting** (model is too simple).
+- $\text{Train Acc} = 97.28\% \land \text{Test Acc} = 95.69\% \implies$ **Healthy Generalization**.
+
+### 8. Moving to Deep Learning (Slides 11, 12, 13)
+Classical ML counts words without understanding them. Deep Learning learns feature representations automatically:
+- **Architecture**:
+  - Input Layer: 5,000 TF-IDF features
+  - Hidden Layer 1: 64 neurons with **ReLU** activation ($\max(0, x)$)
+  - Hidden Layer 2: 32 neurons with **ReLU** activation
+  - Output Layer: 1 neuron with **Sigmoid** activation ($\sigma(z) = \frac{1}{1 + e^{-z}} \in [0, 1]$)
+- **Training**: Adam optimizer, binary cross-entropy loss, batch size 32, 5 epochs with validation monitoring.
+
+### 9. LLMs, Generative AI & Tokenization (Slides 14, 15, 16, 17)
+- **AutoTokenizer (`bert-base-uncased`)**: Breaks words into subword pieces:
+  ```python
+  tok.tokenize("Claim your fr33 gift now")
+  # -> ['claim', 'your', 'fr', '##33', 'gift', 'now']
+  ```
+  Subwords effortlessly cope with typos like `"fr33"` (`['fr', '##33']`), preserving morphological meaning.
+- **Attention**: Dynamic weights allow the word `"not"` to directly invert how `"free"` is interpreted in context.
+- **Four Ways to Steer an LLM**: Zero-shot, Few-shot, Embeddings, Fine-tuning (+ RAG).
+
+---
+
+## 🎯 Hands-On Task: "Break the Spam Filter" (Slides 19 & 20)
+
+### Adversarial Testing Objective
+We subjected the Slide 6 baseline model to targeted adversarial messages designed to exploit structural blind spots in Naive Bayes and TF-IDF:
+1. **Adversarial Spam**: Spam designed to slip past the filter undetected (False Negative).
+2. **Adversarial Ham**: Legitimate emails containing trigger keywords designed to trigger false alarms (False Positive).
+
+---
+
+### 📊 Official Deliverable Results Table (Slide 20 Exact Format)
+
+| My message | Model said | Should be | Why it failed |
+| :--- | :---: | :---: | :--- |
+| `"Cl@im your fr33 g1ft card now! V1s1t www.r3w@rds-cl@im.com to get your 500 b0nus t0d@y!"` | **ham** | **spam** | **Spelling trick, words unseen**: Special symbols (`@`) and leetspeak numbers (`3`, `1`, `0`) create Out-of-Vocabulary (OOV) tokens that bypass standard unigram TF-IDF; model falls back to the 87% ham training prior. |
+| `"Dear valued customer, please find attached your monthly account statement and review the updated terms of service regarding your subscription at your earliest convenience."` | **ham** | **spam** | **Polite business tone / phishing mimicry**: Formal corporate vocabulary (`valued`, `customer`, `statement`, `terms`) carries overwhelmingly high ham posterior frequency in SMS datasets. |
+| `"Hey bro, are we still meeting for lunch today? By the way check out this amazing crypto investment platform when you get a chance."` | **ham** | **spam** | **Good-word stuffing / conversational cloaking**: Colloquial casual tokens (`bro`, `meeting`, `lunch`, `today`) accumulate a large benign log-likelihood that mathematically drowns out the scam investment keywords. |
+| `"Not free! Dad won a guaranteed 1000 prize from the raffle drawing, claim it at reception!"` | **spam** | **ham** | **Saw "free", ignored "not"**: Bag-of-words assumes conditional feature independence, treating `"not"` and `"free"` as detached unigrams; high-frequency spam tokens (`guaranteed`, `1000`, `prize`, `claim`) trigger a False Positive. |
+| `"URGENT: Mom, the school contest says you won a guaranteed 1000 cash prize, call them now!"` | **spam** | **ham** | **Benign context blindness**: High-weight spam trigger tokens (`URGENT`, `won`, `cash`, `prize`) dominate the probability calculation because the model has no relational understanding of family dialogue (`Mom`, `school contest`). |
+
+---
+
+### 🔍 Slide 19 Baseline Demonstration Tests
+
+Testing the two canonical benchmark examples from Slide 19:
+```python
+tests = [
+    "Cl@im your fr33 g1ft card now",
+    "Not free, just confirming lunch at 1pm"
+]
+print(model.predict(vec.transform(tests)))
+# Output: ['ham', 'ham']
+```
+- `"Cl@im your fr33 g1ft card now"` $\to$ Predicted **ham** (Spam slips through due to punctuation and leetspeak OOV).
+- `"Not free, just confirming lunch at 1pm"` $\to$ Predicted **ham** (Strong conversational words `confirming` and `lunch` successfully defend against the token `free`).
+
+---
+
+### 🛡️ Analysis of 3+ Adversarial Tricks (Slide 20 Requirement)
+
+#### Trick 1: Orthographic & Leetspeak Obfuscation (OOV Evasion)
+- **Attack Strategy**: Substituting letters with lookalike symbols (`@` for `a`, `3` for `e`, `1` for `i`, `0` for `o`).
+- **Why Naive Bayes Fails**: Standard regex tokenizers (`r'(?u)\b\w\w+\b'`) split on punctuation. Words like `Cl@im` are parsed into disconnected fragments, and `fr33` does not exist in the training vocabulary. Without its recognized spam keywords, the model's likelihood shrinks to zero, and the decision reverts to the dataset's base prior distribution ($87\%$ ham).
+
+#### Trick 2: Negation Inversion & Bag-of-Words Independence
+- **Attack Strategy**: Placing explicit negations directly in front of prominent spam words (`"Not free"`, `"Never claim"`).
+- **Why Naive Bayes Fails**: Naive Bayes enforces the assumption that every token is conditionally independent:
+  $$P(w_1, w_2, \dots, w_n \mid C) = \prod_{i=1}^n P(w_i \mid C)$$
+  Because word order is discarded, the negative polarity of `"not"` cannot bind to `"free"`. The enormous spam posterior weight of `"free"`, `"guaranteed"`, and `"prize"` completely overpowers the ham prior, generating a devastating False Positive.
+
+#### Trick 3: Polite Corporate Register & Phishing Mimicry
+- **Attack Strategy**: Framing malicious phishing attempts with professional corporate terminology (`"Dear valued customer"`, `"account statement"`).
+- **Why Naive Bayes Fails**: In real-world communication corpora, formal phrasing correlates heavily with legitimate banking and account notifications. The model computes a dominant posterior likelihood for ham, blinded by corporate vocabulary.
+
+#### Trick 4: Good-Word Stuffing (Conversational Cloaking)
+- **Attack Strategy**: Surrounding an unsolicited scam proposal with casual conversational sentences.
+- **Why Naive Bayes Fails**: The cumulative summation of log-probabilities across multiple everyday conversational tokens easily eclipses the few suspicious keywords, letting the payload slip past the filter.
+
+---
+
+## 💡 What I Learned (Slide 20 Requirement: Exactly 2 Sentences)
+
+> **Sentence 1**: *While classical Naive Bayes achieves high benchmark accuracy by counting word co-occurrences, its bag-of-words assumption makes it completely blind to word order, negations, and spelling obfuscations—allowing adversaries to evade detection with trivial character substitutions and conversational padding.*
+>
+> **Sentence 2**: *Modern deep learning and Transformer-based LLMs solve these fundamental weaknesses by learning hierarchical representations, tokenizing robust subword units, and using contextual self-attention to understand semantic meaning rather than isolated keywords.*
+
+---
+
+## 🚀 Getting Started & Execution Guide
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/EyobTesfaye8/AWS_tasks.git
-cd AWS_tasks
+git clone https://github.com/eyosialex/AWS-Exercies.git
+cd AWS-Exercies/AWS_week_3
 ```
 
-### 2. Create and Activate a Virtual Environment (`venv`)
-
-An isolated virtual environment ensures clean, reproducible dependency management across operating systems:
+### 2. Configure Virtual Environment
 
 * **On Linux / macOS:**
   ```bash
-  # Create a virtual environment named '.venv'
   python3 -m venv .venv
-
-  # Activate the virtual environment
   source .venv/bin/activate
   ```
 
-* **On Windows (Command Prompt / PowerShell):**
+* **On Windows (PowerShell):**
   ```powershell
-  # Create a virtual environment named '.venv'
   python -m venv .venv
-
-  # Activate the virtual environment
   .\.venv\Scripts\activate
   ```
 
-> [!NOTE]
-> The `.venv/` directory is explicitly excluded in [`.gitignore`](.gitignore) and is never committed to GitHub, preventing repository bloat and dependency leaks.
-
 ### 3. Install Dependencies
-
-Install all core libraries using [`requirements.txt`](requirements.txt):
 
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-Key packages included:
-* **`numpy`**: Vectorized numerical calculations and pure mathematical cosine similarity.
-* **`pandas`**: Tabular data manipulation, data quality auditing, and CSV/JSON IO.
-* **`matplotlib`**: Statistical charting and time-series plotting.
-* **`sentence-transformers` & `torch`**: Dense semantic embedding generation (`all-MiniLM-L6-v2`).
-* **`chromadb`**: Lightweight AI-native vector database for persistent storage and Approximate Nearest Neighbor (ANN) search.
-* **`requests`**: Resilient HTTP REST API integration.
-* **`jupyter` / `ipykernel`**: Interactive notebook environment.
+### 4. Run the Standalone Pipeline
 
----
+To execute the complete 3-era pipeline and adversarial breaking tests from the terminal:
 
-## 📊 Week 01: Market Arrivals Data Analysis Pipeline
-
-An end-to-end pipeline analyzing 10,227 records of agricultural market arrival prices and trade volumes.
-
-### How to Run Week 01
-
-* **Run the standalone pipeline script:**
-  ```bash
-  python week-01/main.py
-  ```
-* **Run the Jupyter Notebook locally:**
-  ```bash
-  jupyter notebook week-01/AWS_First_week_task.ipynb
-  ```
-* **Open directly in Google Colab:**
-  [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EyobTesfaye8/AWS_tasks/blob/main/week-01/AWS_First_week_task.ipynb)
-
-### Week 01 Architecture Highlights
-
-1. **Modular Named Cleaning Functions (`def`)**:
-   * `load_raw_data()`: Loads dataset locally with automated remote GitHub fallback.
-   * `clean_missing_and_duplicates()`: Checks for missing values across columns and deduplicates rows.
-   * `clean_text_fields()`: Normalizes categorical text (strips whitespace, standardizes uppercase casing).
-   * `convert_column_types()`: Casts `date` to `datetime64[ns]` and validates numerical types (`quantity`, `priceMod`, etc.).
-   * `detect_and_handle_outliers()`: Identifies extreme outliers using the Interquartile Range (IQR) method and applies Winsorization (capping):
-     $$\text{IQR} = Q_3 - Q_1, \quad \text{Lower} = \max(0, Q_1 - 1.5 \times \text{IQR}), \quad \text{Upper} = Q_3 + 1.5 \times \text{IQR}$$
-2. **NumPy Statistical Vector Operations**:
-   * Utilizes 7 distinct NumPy calculation functions: `np.mean()`, `np.median()`, `np.std()`, `np.percentile()`, `np.where()`, `np.min()`, and `np.max()`.
-3. **Summary of Findings**:
-   * **Dataset Size**: 10,227 records.
-   * **Modal Price Mean**: 984.28 INR / quintal | **Median**: 747.00 INR / quintal.
-   * **Volatility (`np.std`)**: 818.43 INR / quintal with prices spanning from 80.00 to 6,400.00.
-
----
-
-## 🔍 Week 02: APIs, Vector Embeddings & Semantic Search (FAQ Assistant)
-
-A production-ready semantic retrieval and FAQ assistant designed for AWS Cloud, Machine Learning, and AASTU Cohort academic support.
-
-### How to Run Week 02
-
-* **Run the standalone pipeline script:**
-  ```bash
-  python week-02/main.py
-  ```
-* **Run the custom semantic search notebook locally:**
-  ```bash
-  jupyter notebook week-02/AWS_ML_Semantic_Search.ipynb
-  ```
-* **Open directly in Google Colab:**
-  [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EyobTesfaye8/AWS_tasks/blob/main/week-02/AWS_ML_Semantic_Search.ipynb)
-
-### Week 02 Pipeline Stages
-
-```
-   Raw Data (CSV/JSON)
-           │
-           ▼
-┌─────────────────────────┐
-│ 1. Data Quality & Clean │ ──► Null removal, deduplication, text & category normalization
-└─────────────────────────┘
-           │
-           ▼
-┌─────────────────────────┐
-│ 2. API & Chunking Demo  │ ──► REST JSON requests + Sliding window passage chunking
-└─────────────────────────┘
-           │
-           ▼
-┌─────────────────────────┐
-│ 3. Dense Vector Embed   │ ──► sentence-transformers/all-MiniLM-L6-v2 (384-dim, L2 normalized)
-└─────────────────────────┘
-           │
-     ┌─────┴──────────────────┐
-     ▼                        ▼
-┌─────────────────────────┐ ┌─────────────────────────┐
-│ 4. Pure NumPy Cosine    │ │ 5. ChromaDB Vector DB   │
-│    Matrix Dot-Product   │ │    Persistent Storage   │
-│    Nearest Neighbors    │ │    + Metadata Filter    │
-└─────────────────────────┘ └─────────────────────────┘
-     │                        │
-     └─────┬──────────────────┘
-           ▼
-┌─────────────────────────┐
-│ 6. Comparative Eval     │ ──► Multi-query testing, NumPy vs ChromaDB, error analysis
-└─────────────────────────┘
+```bash
+python main.py
 ```
 
-1. **Data Inspection & Cleaning**:
-   * Evaluates `week-02/data/raw_messy_faqs.csv` containing deliberate real-world defects.
-   * Detects and drops incomplete rows missing essential answers (`faq_022`).
-   * Deduplicates identical question-answer pairs (`faq_021`).
-   * Strips extraneous whitespace and standardizes category identifiers (`aws_cloud`, `machine_learning`, `academics`, `support`).
-   * Feature engineering: Computes min-max normalized question length ($[0, 1]$).
-2. **REST API & JSON Handling**:
-   * Demonstrates HTTP GET requests, HTTP status code validation, JSON serialization/deserialization, and offline fallback handling.
-3. **Document Chunking & Tokenization**:
-   * Implements text chunking with configurable chunk size and sliding window overlap to preserve semantic context across passage boundaries.
-4. **Dense Vector Embeddings**:
-   * Formats composite document text: `"Question: ... \nAnswer: ..."`.
-   * Encodes documents using `sentence-transformers/all-MiniLM-L6-v2` into 384-dimensional unit-normalized dense vectors.
-5. **Pure NumPy Semantic Search**:
-   * Because embeddings are $L_2$-normalized ($\| \mathbf{v} \|_2 = 1$), cosine similarity simplifies directly to the dot product:
-     $$\text{Cosine Similarity}(\mathbf{q}, \mathbf{d}) = \mathbf{q} \cdot \mathbf{d} = \sum_{i=1}^{384} q_i d_i$$
-   * Implements top-$k$ nearest-neighbor retrieval using pure NumPy vectorized operations (`np.dot`, `np.argsort`).
-6. **Vector Database Integration (ChromaDB)**:
-   * Initializes persistent local storage (`./chroma_db`).
-   * Indexes document text, embeddings, and structured metadata.
-   * Executes Approximate Nearest Neighbor (ANN) search with structured metadata filtering (e.g., `where={"category": "aws_cloud"}`).
-7. **Evaluation, Comparative Benchmarks & Diagnostic Error Analysis**:
-   * **Multi-query testing**: Validates retrieval accuracy across diverse user phrasings.
-   * **NumPy vs. ChromaDB**: Demonstrates identical top-rank consistency between exact linear scan and ChromaDB's indexed retrieval.
-   * **Ambiguous Query Diagnosis**: Evaluates poorly performing queries (e.g., *"How do I fix errors?"*), diagnosing why dense semantic search struggles with underspecified intent and outlining solutions (query disambiguation, hybrid BM25 + dense search, and category constraints).
+### 5. Launch the Interactive Notebook
+
+To explore interactive cells, diagnostic confusion matrices, loss curves, and probability plots:
+
+```bash
+jupyter notebook spam_filter.ipynb
+```
+
+Or open directly in Google Colab:
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/eyosialex/AWS-Exercies/blob/main/AWS_week_3/spam_filter.ipynb)
 
 ---
 
-## 🛡️ Week 03: Text Classification & Breaking the Spam Filter (MultinomialNB & TF-IDF)
+## 📋 Rubric & Deliverable Compliance Matrix
 
-A robust machine learning and adversarial NLP pipeline evaluating the classical **Multinomial Naive Bayes + TF-IDF** architecture on the SMS Spam Collection dataset, featuring the **"Break the Spam Filter"** adversarial challenge.
-
-### How to Run Week 03
-
-* **Run the standalone pipeline script:**
-  ```bash
-  python week-03/main.py
-  ```
-* **Run the Jupyter Notebook locally:**
-  ```bash
-  jupyter notebook week-03/spam_filter.ipynb
-  ```
-* **Open directly in Google Colab:**
-  [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/EyobTesfaye8/AWS_tasks/blob/main/week-03/spam_filter.ipynb)
-
-### Week 03 Pipeline & Deliverables
-
-1. **Modular Named Cleaning Functions (`def`)**:
-   * `load_raw_data()`: Ingests raw SMS dataset locally from `week-03/data/sms.tsv` with remote GitHub fallback.
-   * `clean_missing_and_duplicates()`: Detects missing values and removes 403 duplicate messages (5,572 $\to$ 5,169 records).
-   * `clean_text_fields()`: Normalizes whitespace, strips non-printable characters, and standardizes casing.
-   * `convert_data_types()`: Casts message to string, label to categorical, and extracts integer length metrics.
-   * `detect_text_outliers()`: Applies the Interquartile Range (IQR) technique and `np.where` to flag 65 length anomalies.
-2. **NumPy Statistical Vector Operations**:
-   * Utilizes **6 distinct NumPy calculation functions**: `np.mean()`, `np.median()`, `np.std()`, `np.percentile()`, `np.where()`, and `np.unique()`.
-   * **Key Metrics**: Overall mean length = 79.23 chars (Spam mean = 137.66 chars, Ham mean = 70.78 chars).
-3. **Slide 6 Baseline Model Reproduction**:
-   * Exact 10-line baseline: `train_test_split(test_size=0.2, random_state=42)` + `TfidfVectorizer()` + `MultinomialNB()`.
-   * **Training Accuracy**: 97.29% | **Test Accuracy**: 96.68% (Precision on spam: 100%, Recall on spam: 75.17%).
-4. **Hands-On Task: "Break the Spam Filter"**:
-   * Designed 5+ adversarial attack messages exploiting structural weaknesses of Naive Bayes and TF-IDF:
-
-| # | Test Scenario | Message Snippet | True Label | Predicted | Outcome | Failure Diagnosis |
-| :-: | :--- | :--- | :-: | :-: | :-: | :--- |
-| **1** | **Leetspeak Obfuscation** | `"Cl@im your fr33 g1ft card now! V1s1t www.r3w@rds-cl@im.com..."` | **SPAM** | **HAM** | Breached (FN) | Punctuation regex splits tokens; obfuscations are Out-Of-Vocabulary (OOV), triggering the 86% ham prior. |
-| **2** | **Polite Business / Phishing** | `"Dear valued customer, please find attached your monthly account statement..."` | **SPAM** | **HAM** | Breached (FN) | Formal corporate vocabulary has strong ham posterior likelihood; bag-of-words has no intent comprehension. |
-| **3** | **Good-Word Stuffing** | `"Hey bro, are we still meeting for lunch today? By the way check out this amazing crypto..."` | **SPAM** | **HAM** | Breached (FN) | Dense benign colloquial tokens overwhelm the spam payload log-likelihood ($P(\text{ham}) = 99.84\%$). |
-| **4** | **Negation Inversion** | `"Not free! Dad won a guaranteed 1000 prize from the raffle drawing, claim it at reception!"` | **HAM** | **SPAM** | Breached (FP) | Conditional independence assumption discards syntax: `"not"` and `"free"` are treated independently ($P(\text{spam}) = 65.23\%$). |
-| **5** | **Urgent Personal Alert** | `"URGENT: Mom, the school contest says you won a guaranteed 1000 cash prize, call them now!"` | **HAM** | **SPAM** | Breached (FP) | Spam trigger keywords (`"URGENT"`, `"won"`, `"cash"`, `"prize"`) dominate due to lack of relational context ($P(\text{spam}) = 57.25\%$). |
-
----
-
-## 📋 Rubric & Grading Compliance Checklist
-
-| Rubric Requirement | Points | Status | Location / Implementation Details |
+| Evaluation Criteria | Required Spec | Achieved Status | Verification Evidence |
 | :--- | :---: | :---: | :--- |
-| **Public GitHub Repository** | **4** | ✅ | Remote tracked at [`https://github.com/EyobTesfaye8/AWS_tasks`](https://github.com/EyobTesfaye8/AWS_tasks). |
-| **Loads Raw Dataset in Repo** | **5** | ✅ | Raw datasets stored in repo: `week-01/marketing.csv`, `week-02/data/*.csv`, and `week-03/data/sms.tsv`. |
-| **Named Functions (`def`) & Cleaning** | **10** | ✅ | Modular functions for null checks, deduplication, text normalization, type conversion, and IQR outliers across all weeks. |
-| **NumPy Calculations ($\ge 4$ funcs)** | **10** | ✅ | `np.mean`, `np.median`, `np.std`, `np.percentile`, `np.where`, `np.unique`, `np.min`, `np.max`, `np.dot`. |
-| **Executed Notebook Committed (No Errors)** | **8** | ✅ | Pre-computed outputs and charts saved in [`week-01`](week-01/AWS_First_week_task.ipynb), [`week-02`](week-02/AWS_ML_Semantic_Search.ipynb), and [`week-03`](week-03/spam_filter.ipynb) with 0 error cells. |
-| **Colab Links Provided** | **2** | ✅ | Active Colab launch badges and URLs included in README and top of each notebook. |
-| **`requirements.txt` with `numpy`** | **4** | ✅ | Explicitly listed in root [`requirements.txt`](requirements.txt) (`numpy==2.5.4`, `scikit-learn`, `pandas`). |
-| **README Explains `venv` & `.gitignore`** | **3** | ✅ | Step-by-step virtualenv instructions for Linux/macOS and Windows; `.venv` ignored in `.gitignore`. |
-| **README Explains How to Run** | **2** | ✅ | Clear execution commands provided for Python CLI scripts, Jupyter, and Colab across Week 01, Week 02, and Week 03. |
-| **Folder Organization (`week-01`, `week-02`, `week-03`)** | **2** | ✅ | Clean project folder hierarchy; no flat repository clutter. |
-| **Penalty Prevention** | **0** | ✅ | `.venv`, `__pycache__`, and `.ipynb_checkpoints` strictly ignored and clean. |
-| **Total Score Potential** | **50 / 50** | 🌟 | **100% Rubric Coverage** |
+| **Public GitHub Repository** | Public link submitted | ✅ | Remote at [`eyosialex/AWS-Exercies`](https://github.com/eyosialex/AWS-Exercies) |
+| **Dataset Link Provided (Do Not Upload)** | Valid link; no raw upload | ✅ | Linked to [UCI SMS Spam Collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection); `.tsv` ignored in [`.gitignore`](.gitignore) |
+| **Slide 6 10-Line Baseline Model** | `TfidfVectorizer` + `MultinomialNB` | ✅ | Implemented in [`main.py`](main.py) and [`spam_filter.ipynb`](spam_filter.ipynb) |
+| **Overfitting / Underfitting Diagnosis** | Train vs test acc comparison | ✅ | Train: $97.28\%$, Test: $95.69\%$, Precision: $100\%$ |
+| **Deep Learning Implementation** | Dense(64, ReLU) $\to$ Dense(32, ReLU) $\to$ Dense(1, Sigmoid) | ✅ | Fully trained with binary cross-entropy, Adam, 5 epochs |
+| **Modern AI Subword Tokenization** | Hugging Face BERT Tokenizer | ✅ | AutoTokenizer demonstrated on `"fr33"` $\to$ `['fr', '##33']` |
+| **Break the Spam Filter Task** | $\ge 5$ adversarial tests | ✅ | 5 targeted attacks + 2 Slide 19 tests executed and logged |
+| **Results Table in Exact Format** | `My message \| Model said \| Should be \| Why it failed` | ✅ | Displayed in README, terminal script, and notebook |
+| **3 or More Tricks Explained** | $\ge 3$ trick categories | ✅ | 4 distinct tricks documented with mathematical failure causes |
+| **What I Learned Statement** | Exactly 2 sentences | ✅ | Prominently featured in dedicated section |
+| **Executed Notebook Committed** | Outputs preserved, 0 errors | ✅ | Precomputed cells, confusion matrices, and bar plots saved |
+
+---
+*Created for the AWS AI/ML Program (AASTU Cohort) — Week 3 Deliverable.*
