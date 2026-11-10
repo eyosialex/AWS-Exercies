@@ -1,3 +1,9 @@
+# Dataset exclusion per Slide 20 requirement: "a link to the dataset (do not upload it)"
+data/*.tsv
+data/*.csv
+*.tsv
+*.csv
+
 # Python Virtual Environments
 .venv/
 venv/
@@ -16,15 +22,8 @@ __pycache__/
 */.ipynb_checkpoints/
 **/.ipynb_checkpoints/
 
-# Distribution / Packaging
-build/
-dist/
-*.egg-info/
-
 # Operating System and IDEs
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
-chroma_faq_db/
-Untitled*.ipynb
