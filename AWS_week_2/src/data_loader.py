@@ -33,7 +33,18 @@ def load_faqs(filepath: str) -> pd.DataFrame:
         if found:
             filepath = found
         else:
-            raise FileNotFoundError(f"FAQ dataset file not found at: {filepath}")
+            # Remote fallback if running in Google Colab or detached directory
+            remote_url = f"https://raw.githubusercontent.com/eyosialex/AWS-Exercies/main/AWS_week_2/data/{os.path.basename(filepath)}"
+            try:
+                import urllib.request
+                target_dir = os.path.dirname(filepath) or "data"
+                os.makedirs(target_dir, exist_ok=True)
+                download_path = os.path.join(target_dir, os.path.basename(filepath))
+                urllib.request.urlretrieve(remote_url, download_path)
+                print(f"📥 Downloaded dataset from remote fallback: {remote_url}")
+                filepath = download_path
+            except Exception:
+                raise FileNotFoundError(f"FAQ dataset file not found at: {filepath}")
 
     ext = os.path.splitext(filepath)[1].lower()
     if ext == ".csv":
