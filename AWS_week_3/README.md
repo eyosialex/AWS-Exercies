@@ -37,9 +37,9 @@ This repository presents an end-to-end evolutionary journey from **Classical Mac
 
 ---
 
-## 📁 Repository Deliverables (Slide 20 Compliance)
+## 📁 Repository Deliverables 
 
-Per the **Week 3 Deliverable Specification (Slide 20)**, the submission includes:
+Per the **Week 3 Deliverable Specification **, the submission includes:
 
 | Deliverable File | Description | Status |
 | :--- | :--- | :---: |
@@ -276,5 +276,4 @@ Or open directly in Google Colab:
 | **What I Learned Statement** | Exactly 2 sentences | ✅ | Prominently featured in dedicated section |
 | **Executed Notebook Committed** | Outputs preserved, 0 errors | ✅ | Precomputed cells, confusion matrices, and bar plots saved |
 
----
-*Created for the AWS AI/ML Program (AASTU Cohort) — Week 3 Deliverable.*
+
